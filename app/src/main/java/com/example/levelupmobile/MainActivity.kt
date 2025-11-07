@@ -1,47 +1,47 @@
-package com.example.levelupmobile
+package cl.duoc.levelupmobile
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.levelupmobile.ui.theme.LevelUpMobileTheme
+import androidx.compose.ui.platform.LocalContext
+import cl.duoc.levelupmobile.data.local.datastore.PreferencesManager
+import cl.duoc.levelupmobile.ui.navigation.AppNavigation
+import cl.duoc.levelupmobile.ui.navigation.Screen
+import cl.duoc.levelupmobile.ui.theme.LevelUpGamerTheme
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            LevelUpMobileTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            LevelUpGamerTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val context = LocalContext.current
+                    val preferencesManager = remember { PreferencesManager(context) }
+                    var startDestination by remember { mutableStateOf<String?>(null) }
+
+                    LaunchedEffect(Unit) {
+                        val isLoggedIn = preferencesManager.isLoggedInFlow.first()
+                        startDestination = if (isLoggedIn) {
+                            Screen.Home.route
+                        } else {
+                            Screen.Login.route
+                        }
+                    }
+
+                    startDestination?.let { destination ->
+                        AppNavigation(startDestination = destination)
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    LevelUpMobileTheme {
-        Greeting("Android")
     }
 }
