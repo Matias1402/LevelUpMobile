@@ -1,5 +1,7 @@
 package cl.duoc.levelupmobile.ui.profile
 
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,10 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import cl.duoc.levelupmobile.ui.theme.*
+import coil.compose.rememberAsyncImagePainter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,10 +29,27 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCamera: () -> Unit,
     onLogout: () -> Unit,
+    navBackStackEntry: NavBackStackEntry,
     viewModel: ProfileViewModel = viewModel()
 ) {
     val currentUser by viewModel.currentUser.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
+
+    var profilePicUri by remember { mutableStateOf<Uri?>(null) }
+
+    LaunchedEffect(navBackStackEntry) {
+        val savedStateHandle = navBackStackEntry.savedStateHandle
+        val newPicUriString = savedStateHandle.get<String>("new_profile_pic_uri")
+
+        if (newPicUriString != null) {
+            profilePicUri = Uri.parse(newPicUriString)
+
+            // Opcional: Avisa a tu ViewModel que guarde esta URI
+            // viewModel.saveProfilePicUri(newPicUriString)
+
+            savedStateHandle.remove<String>("new_profile_pic_uri")
+        }
+    }
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -83,7 +105,6 @@ fun ProfileScreen(
                 .padding(16.dp)
         ) {
             currentUser?.let { user ->
-                // Profile Header
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = DarkGray),
@@ -95,7 +116,6 @@ fun ProfileScreen(
                             .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Avatar
                         Box(
                             modifier = Modifier
                                 .size(100.dp)
@@ -103,12 +123,21 @@ fun ProfileScreen(
                                 .background(ElectricBlue.copy(alpha = 0.3f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                Icons.Default.Person,
-                                contentDescription = null,
-                                tint = ElectricBlue,
-                                modifier = Modifier.size(60.dp)
-                            )
+                            if (profilePicUri != null) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(model = profilePicUri),
+                                    contentDescription = "Foto de Perfil",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = ElectricBlue,
+                                    modifier = Modifier.size(60.dp)
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -180,7 +209,6 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // LevelUp Points
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = ElectricBlue.copy(alpha = 0.2f)),
@@ -226,7 +254,6 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // User Info
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = DarkGray),
@@ -276,7 +303,6 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Logout Button
                 Button(
                     onClick = { showLogoutDialog = true },
                     modifier = Modifier

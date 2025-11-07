@@ -1,5 +1,6 @@
 package cl.duoc.levelupmobile.ui.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -64,10 +65,10 @@ fun AppNavigation(
                 onNavigateToProduct = { productCode ->
                     navController.navigate(Screen.ProductDetail.createRoute(productCode))
                 },
+                // Navegación al mapa añadida previamente
                 onNavigateToEventMap = {
                     navController.navigate(Screen.EventMap.route)
                 }
-
             )
         }
 
@@ -103,8 +104,9 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Profile.route) {
+        composable(Screen.Profile.route) { backStackEntry ->
             ProfileScreen(
+                navBackStackEntry = backStackEntry,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCamera = { navController.navigate(Screen.Camera.route) },
                 onLogout = {
@@ -117,7 +119,16 @@ fun AppNavigation(
 
         composable(Screen.Camera.route) {
             CameraScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onPhotoTaken = { uri ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("new_profile_pic_uri", uri.toString())
+
+                    navController.popBackStack()
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
             )
         }
 

@@ -2,6 +2,7 @@ package cl.duoc.levelupmobile.ui.camera
 
 import android.Manifest
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -31,6 +32,7 @@ import java.util.concurrent.Executor
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun CameraScreen(
+    onPhotoTaken: (Uri) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
@@ -60,7 +62,7 @@ fun CameraScreen(
         ) {
             when {
                 cameraPermissionState.status.isGranted -> {
-                    CameraPreviewContent(onNavigateBack)
+                    CameraPreviewContent(onPhotoTaken = onPhotoTaken)
                 }
                 cameraPermissionState.status.shouldShowRationale -> {
                     Column(
@@ -141,10 +143,9 @@ fun CameraScreen(
     }
 }
 
-
 @Composable
 fun CameraPreviewContent(
-    onNavigateBack: () -> Unit
+    onPhotoTaken: (Uri) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -173,21 +174,17 @@ fun CameraPreviewContent(
         }
     }
 
-
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
 
-        // El Botón de Captura para sacar la foto
         IconButton(
             onClick = {
-
                 takePhoto(
                     context = context,
                     imageCapture = imageCapture,
-                    onSuccess = {
-                        Log.i("CameraScreen", "Foto tomada con éxito")
-                        // Rnavegcion a la pantalla anterior
-                        onNavigateBack()
+                    onSuccess = { uri ->
+                        Log.i("CameraScreen", "Foto tomada: $uri")
+                        onPhotoTaken(uri)
                     },
                     onError = {
                         Log.e("CameraScreen", "Error al tomar la foto", it)
@@ -211,34 +208,31 @@ fun CameraPreviewContent(
     }
 }
 
-
 private fun takePhoto(
     context: Context,
     imageCapture: ImageCapture,
-    onSuccess: () -> Unit,
+    onSuccess: (Uri) -> Unit,
     onError: (ImageCaptureException) -> Unit
 ) {
     val outputFileOptions = ImageCapture.OutputFileOptions.Builder(
         java.io.File(
-            context.cacheDir, // Directorio de caché
-            "temp_profile_pic.jpg" // Nombre del archivo
+            context.cacheDir,
+            "temp_profile_pic.jpg"
         )
     ).build()
 
     val executor: Executor = ContextCompat.getMainExecutor(context)
-
 
     imageCapture.takePicture(
         outputFileOptions,
         executor,
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                // Éxito
-                onSuccess()
+                val savedUri = outputFileResults.savedUri ?: Uri.EMPTY
+                onSuccess(savedUri)
             }
 
             override fun onError(exception: ImageCaptureException) {
-                // Error
                 onError(exception)
             }
         }
