@@ -1,6 +1,12 @@
 package cl.duoc.levelupmobile.ui.map
 
 import android.Manifest
+// --- IMPORTACIONES NUEVAS AÑADIDAS PARA LA FUNCIONALIDAD DE LA REDIRECCION
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -65,7 +71,6 @@ fun EventMapScreen(
         ) {
             when {
                 locationPermissionState.status.isGranted -> {
-                    // Permiso concedido - Mostrar mapa y eventos
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -117,12 +122,11 @@ fun EventMapScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(events) { event ->
-                            EventCard(event)
+                            EventCard(event) // Llama al EventCard
                         }
                     }
                 }
                 locationPermissionState.status.shouldShowRationale -> {
-                    // Mostrar razón del permiso
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -159,7 +163,6 @@ fun EventMapScreen(
                     }
                 }
                 else -> {
-                    // Solicitar permiso
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -204,6 +207,8 @@ fun EventMapScreen(
 
 @Composable
 fun EventCard(event: GameEvent) {
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = DarkGray),
@@ -283,16 +288,26 @@ fun EventCard(event: GameEvent) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = { /* Navegar al detalle del evento */ },
+                onClick = {
+                    val searchAddress = event.location
+
+                    // Creamos un URI "geo" para BUSCAR esa dirección.
+                    // "geo:0,0?q=" es el formato para buscar una dirección de texto.
+                    val geoUri = "geo:0,0?q=${Uri.encode(searchAddress)}"
+
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(geoUri))
+
+                    context.startActivity(intent)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ElectricBlue,
                     contentColor = Black
                 )
             ) {
-                Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Directions, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Ver detalles")
+                Text("Cómo llegar")
             }
         }
     }

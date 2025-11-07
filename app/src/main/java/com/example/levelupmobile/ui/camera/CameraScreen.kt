@@ -1,17 +1,32 @@
 package cl.duoc.levelupmobile.ui.camera
 
 import android.Manifest
+import android.content.Context
+import android.util.Log
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.*
 import cl.duoc.levelupmobile.ui.theme.*
+import java.util.concurrent.Executor
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -42,41 +57,19 @@ fun CameraScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
             when {
                 cameraPermissionState.status.isGranted -> {
-                    // Permiso concedido
-                    Icon(
-                        Icons.Default.CameraAlt,
-                        contentDescription = null,
-                        tint = ElectricBlue,
-                        modifier = Modifier.size(80.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        "Cámara activada",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = White
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Funcionalidad de cámara implementada",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = LightGray
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        "Aquí podrías capturar una foto de perfil o escanear productos",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = LightGray
-                    )
+                    CameraPreviewContent(onNavigateBack)
                 }
                 cameraPermissionState.status.shouldShowRationale -> {
-                    // Mostrar razón del permiso
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Icon(
                             Icons.Default.CameraAlt,
                             contentDescription = null,
@@ -106,8 +99,13 @@ fun CameraScreen(
                     }
                 }
                 else -> {
-                    // Solicitar permiso
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Icon(
                             Icons.Default.NoPhotography,
                             contentDescription = null,
@@ -141,4 +139,108 @@ fun CameraScreen(
             }
         }
     }
+}
+
+
+@Composable
+fun CameraPreviewContent(
+    onNavigateBack: () -> Unit
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+
+    val previewView = remember { PreviewView(context) }
+    val imageCapture = remember { ImageCapture.Builder().build() }
+
+    LaunchedEffect(cameraProviderFuture) {
+        val cameraProvider = cameraProviderFuture.get()
+        val preview = Preview.Builder().build().also {
+            it.setSurfaceProvider(previewView.surfaceProvider)
+        }
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+        try {
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                cameraSelector,
+                preview,
+                imageCapture
+            )
+        } catch (exc: Exception) {
+            Log.e("CameraScreen", "Fallo al conectar casos de uso", exc)
+        }
+    }
+
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+
+        // El Botón de Captura para sacar la foto
+        IconButton(
+            onClick = {
+
+                takePhoto(
+                    context = context,
+                    imageCapture = imageCapture,
+                    onSuccess = {
+                        Log.i("CameraScreen", "Foto tomada con éxito")
+                        // Rnavegcion a la pantalla anterior
+                        onNavigateBack()
+                    },
+                    onError = {
+                        Log.e("CameraScreen", "Error al tomar la foto", it)
+                    }
+                )
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
+                .size(72.dp)
+                .background(White.copy(alpha = 0.7f), CircleShape)
+                .border(2.dp, ElectricBlue, CircleShape)
+        ) {
+            Icon(
+                Icons.Default.Camera,
+                contentDescription = "Tomar Foto",
+                tint = Black,
+                modifier = Modifier.size(40.dp)
+            )
+        }
+    }
+}
+
+
+private fun takePhoto(
+    context: Context,
+    imageCapture: ImageCapture,
+    onSuccess: () -> Unit,
+    onError: (ImageCaptureException) -> Unit
+) {
+    val outputFileOptions = ImageCapture.OutputFileOptions.Builder(
+        java.io.File(
+            context.cacheDir, // Directorio de caché
+            "temp_profile_pic.jpg" // Nombre del archivo
+        )
+    ).build()
+
+    val executor: Executor = ContextCompat.getMainExecutor(context)
+
+
+    imageCapture.takePicture(
+        outputFileOptions,
+        executor,
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                // Éxito
+                onSuccess()
+            }
+
+            override fun onError(exception: ImageCaptureException) {
+                // Error
+                onError(exception)
+            }
+        }
+    )
 }

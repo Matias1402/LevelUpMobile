@@ -73,11 +73,12 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
 
     // CameraX para recursos nativos
-    val cameraxVersion = "1.3.1"
-    implementation("androidx.camera:camera-core:$cameraxVersion")
-    implementation("androidx.camera:camera-camera2:$cameraxVersion")
-    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
-    implementation("androidx.camera:camera-view:$cameraxVersion")
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.video)
+    implementation(libs.androidx.camera.extensions)
 
     // Location
     implementation("com.google.android.gms:play-services-location:21.1.0")
