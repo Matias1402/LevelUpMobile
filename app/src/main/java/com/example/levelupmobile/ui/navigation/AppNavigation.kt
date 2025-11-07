@@ -63,7 +63,11 @@ fun AppNavigation(
                 },
                 onNavigateToProduct = { productCode ->
                     navController.navigate(Screen.ProductDetail.createRoute(productCode))
+                },
+                onNavigateToEventMap = {
+                    navController.navigate(Screen.EventMap.route)
                 }
+
             )
         }
 

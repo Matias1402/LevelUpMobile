@@ -28,6 +28,7 @@ fun HomeScreen(
     onNavigateToCart: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToProduct: (String) -> Unit,
+    onNavigateToEventMap: () -> Unit, // Parámetro ya incluido
     viewModel: HomeViewModel = viewModel()
 ) {
     val featuredProducts by viewModel.featuredProducts.collectAsState()
@@ -75,7 +76,6 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Welcome Banner
             item {
                 Card(
                     modifier = Modifier
@@ -123,7 +123,7 @@ fun HomeScreen(
                 }
             }
 
-            // Categories Section
+
             item {
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Row(
@@ -163,7 +163,63 @@ fun HomeScreen(
                 }
             }
 
-            // Featured Products Section
+            //MAPA AGREGADO LUEGO DEL TERMINO(POR MATIAS)
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    "Explora",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Tarjeta para navegar al Mapa de Eventos
+                @OptIn(ExperimentalMaterial3Api::class)
+                Card(
+                    onClick = onNavigateToEventMap, // <-- ¡AQUÍ ESTÁ LA ACCIÓN!
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = DarkGray),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Map, // Ícono de mapa
+                            contentDescription = null,
+                            tint = ElectricBlue,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Mapa de Eventos",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = White,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "Descubre torneos y eventos",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = LightGray
+                            )
+                        }
+                        Icon(
+                            Icons.Default.ArrowForward,
+                            contentDescription = null,
+                            tint = LightGray
+                        )
+                    }
+                }
+            }
+
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
