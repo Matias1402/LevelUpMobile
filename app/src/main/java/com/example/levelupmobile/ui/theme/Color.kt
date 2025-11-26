@@ -1,4 +1,4 @@
-package cl.duoc.levelupmobile.ui.theme
+package com.example.levelupmobile.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

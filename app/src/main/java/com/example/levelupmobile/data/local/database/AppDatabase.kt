@@ -1,12 +1,18 @@
-package cl.duoc.levelupmobile.data.local.database
+package com.example.levelupmobile.data.local.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import cl.duoc.levelupmobile.data.local.database.dao.*
-import cl.duoc.levelupmobile.data.local.entities.*
+import com.example.levelupmobile.data.local.database.dao.CartDao
+import com.example.levelupmobile.data.local.database.dao.ProductDao
+import com.example.levelupmobile.data.local.database.dao.ReviewDao
+import com.example.levelupmobile.data.local.database.dao.UserDao
+import com.example.levelupmobile.data.local.entities.CartItem
+import com.example.levelupmobile.data.local.entities.Product
+import com.example.levelupmobile.data.local.entities.Review
+import com.example.levelupmobile.data.local.entities.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,7 +47,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private class DatabaseCallback : RoomDatabase.Callback() {
+        private class DatabaseCallback : Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
                 INSTANCE?.let { database ->

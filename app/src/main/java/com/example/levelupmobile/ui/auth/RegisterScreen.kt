@@ -1,4 +1,4 @@
-package cl.duoc.levelupmobile.ui.auth
+package com.example.levelupmobile.ui.auth
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -18,7 +18,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cl.duoc.levelupmobile.ui.theme.*
+import com.example.levelupmobile.ui.theme.Black
+import com.example.levelupmobile.ui.theme.DarkGray
+import com.example.levelupmobile.ui.theme.ElectricBlue
+import com.example.levelupmobile.ui.theme.ErrorRed
+import com.example.levelupmobile.ui.theme.LightGray
+import com.example.levelupmobile.ui.theme.NeonGreen
+import com.example.levelupmobile.ui.theme.SuccessGreen
+import com.example.levelupmobile.ui.theme.White
+import kotlinx.coroutines.delay
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -328,7 +337,7 @@ fun RegisterScreen(
 
         LaunchedEffect(isPressed) {
             if (isPressed) {
-                kotlinx.coroutines.delay(200)
+                delay(200)
                 isPressed = false
             }
         }

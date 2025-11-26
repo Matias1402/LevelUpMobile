@@ -1,11 +1,11 @@
-package cl.duoc.levelupmobile.data.remote
+package com.example.levelupmobile.data.remote
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://204.236.209.17:8080/"
+    private const val BASE_URL = "http://52.90.171.97:8080/"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()

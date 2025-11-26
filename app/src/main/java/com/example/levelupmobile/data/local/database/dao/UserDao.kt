@@ -1,7 +1,7 @@
-package cl.duoc.levelupmobile.data.local.database.dao
+package com.example.levelupmobile.data.local.database.dao
 
 import androidx.room.*
-import cl.duoc.levelupmobile.data.local.entities.User
+import com.example.levelupmobile.data.local.entities.User
 import kotlinx.coroutines.flow.Flow
 
 @Dao

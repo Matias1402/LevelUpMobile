@@ -1,4 +1,4 @@
-package cl.duoc.levelupmobile.ui.camera
+package com.example.levelupmobile.ui.camera
 
 import android.Manifest
 import android.content.Context
@@ -22,11 +22,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.*
-import cl.duoc.levelupmobile.ui.theme.*
+import com.example.levelupmobile.ui.theme.Black
+import com.example.levelupmobile.ui.theme.DarkGray
+import com.example.levelupmobile.ui.theme.ElectricBlue
+import com.example.levelupmobile.ui.theme.LightGray
+import com.example.levelupmobile.ui.theme.WarningYellow
+import com.example.levelupmobile.ui.theme.White
+import java.io.File
 import java.util.concurrent.Executor
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
@@ -89,7 +96,7 @@ fun CameraScreen(
                             "Necesitamos acceso a la cámara para que puedas tomar fotos de perfil",
                             style = MaterialTheme.typography.bodyMedium,
                             color = LightGray,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(
@@ -125,7 +132,7 @@ fun CameraScreen(
                             "Para usar esta función, concede el permiso de cámara",
                             style = MaterialTheme.typography.bodyMedium,
                             color = LightGray,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(
@@ -215,7 +222,7 @@ private fun takePhoto(
     onError: (ImageCaptureException) -> Unit
 ) {
     val outputFileOptions = ImageCapture.OutputFileOptions.Builder(
-        java.io.File(
+        File(
             context.cacheDir,
             "temp_profile_pic.jpg"
         )

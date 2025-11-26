@@ -1,4 +1,4 @@
-package cl.duoc.levelupmobile.ui.navigation
+package com.example.levelupmobile.ui.navigation
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")

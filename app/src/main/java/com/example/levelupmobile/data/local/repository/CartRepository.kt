@@ -1,7 +1,7 @@
-package cl.duoc.levelupmobile.data.repository
+package com.example.levelupmobile.data.local.repository
 
-import cl.duoc.levelupmobile.data.local.database.dao.CartDao
-import cl.duoc.levelupmobile.data.local.entities.CartItem
+import com.example.levelupmobile.data.local.database.dao.CartDao
+import com.example.levelupmobile.data.local.entities.CartItem
 import kotlinx.coroutines.flow.Flow
 
 class CartRepository(private val cartDao: CartDao) {

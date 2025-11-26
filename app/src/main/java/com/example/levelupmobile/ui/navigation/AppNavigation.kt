@@ -1,20 +1,19 @@
-package cl.duoc.levelupmobile.ui.navigation
+package com.example.levelupmobile.ui.navigation
 
-import android.net.Uri
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import cl.duoc.levelupmobile.ui.auth.*
-import cl.duoc.levelupmobile.ui.home.*
-import cl.duoc.levelupmobile.ui.catalog.*
-import cl.duoc.levelupmobile.ui.cart.*
-import cl.duoc.levelupmobile.ui.profile.*
-import cl.duoc.levelupmobile.ui.camera.*
-import cl.duoc.levelupmobile.ui.map.*
+import com.example.levelupmobile.ui.cart.CartScreen
+import com.example.levelupmobile.ui.auth.LoginScreen
+import com.example.levelupmobile.ui.auth.RegisterScreen
+import com.example.levelupmobile.ui.camera.CameraScreen
+import com.example.levelupmobile.ui.catalog.CatalogScreen
+import com.example.levelupmobile.ui.catalog.ProductDetailScreen
+import com.example.levelupmobile.ui.home.HomeScreen
+import com.example.levelupmobile.ui.map.EventMapScreen
+import com.example.levelupmobile.ui.profile.ProfileScreen
 
 @Composable
 fun AppNavigation(
@@ -65,7 +64,6 @@ fun AppNavigation(
                 onNavigateToProduct = { productCode ->
                     navController.navigate(Screen.ProductDetail.createRoute(productCode))
                 },
-                // Navegación al mapa añadida previamente
                 onNavigateToEventMap = {
                     navController.navigate(Screen.EventMap.route)
                 }
@@ -104,18 +102,19 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Profile.route) { backStackEntry ->
+        // --- AQUÍ ESTABA EL ERROR: CORREGIDO ---
+        composable(Screen.Profile.route) {
             ProfileScreen(
-                navBackStackEntry = backStackEntry,
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCamera = { navController.navigate(Screen.Camera.route) },
-                onLogout = {
+                // Ahora solo pasamos la función para ir al login tras cerrar sesión
+                onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
+                        // Limpiamos la pila para que no pueda volver atrás
                         popUpTo(0) { inclusive = true }
                     }
                 }
             )
         }
+        // ---------------------------------------
 
         composable(Screen.Camera.route) {
             CameraScreen(

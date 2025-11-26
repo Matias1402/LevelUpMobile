@@ -1,4 +1,4 @@
-package cl.duoc.levelupmobile.ui.map
+package com.example.levelupmobile.ui.map
 
 import android.Manifest
 // --- IMPORTACIONES NUEVAS AÑADIDAS PARA LA FUNCIONALIDAD DE LA REDIRECCION
@@ -7,7 +7,6 @@ import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
 
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,9 +18,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.*
-import cl.duoc.levelupmobile.ui.theme.*
+import com.example.levelupmobile.ui.theme.Black
+import com.example.levelupmobile.ui.theme.DarkGray
+import com.example.levelupmobile.ui.theme.ElectricBlue
+import com.example.levelupmobile.ui.theme.LightGray
+import com.example.levelupmobile.ui.theme.NeonGreen
+import com.example.levelupmobile.ui.theme.SuccessGreen
+import com.example.levelupmobile.ui.theme.WarningYellow
+import com.example.levelupmobile.ui.theme.White
 
 data class GameEvent(
     val name: String,
@@ -151,7 +158,7 @@ fun EventMapScreen(
                             "Necesitamos tu ubicación para mostrarte eventos cercanos y ayudarte a ganar puntos LevelUp",
                             style = MaterialTheme.typography.bodyMedium,
                             color = LightGray,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(
@@ -187,7 +194,7 @@ fun EventMapScreen(
                             "Para usar el mapa de eventos, concede el permiso de ubicación",
                             style = MaterialTheme.typography.bodyMedium,
                             color = LightGray,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(

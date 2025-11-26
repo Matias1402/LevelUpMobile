@@ -1,4 +1,4 @@
-package cl.duoc.levelupmobile.utils
+package com.example.levelupmobile.utils
 
 import java.util.regex.Pattern
 

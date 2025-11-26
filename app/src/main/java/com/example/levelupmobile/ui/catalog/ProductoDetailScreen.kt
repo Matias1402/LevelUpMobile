@@ -1,4 +1,4 @@
-package cl.duoc.levelupmobile.ui.catalog
+package com.example.levelupmobile.ui.catalog
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,9 +13,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cl.duoc.levelupmobile.data.local.entities.Product
-import cl.duoc.levelupmobile.ui.cart.CartViewModel
-import cl.duoc.levelupmobile.ui.theme.*
+import com.example.levelupmobile.data.local.entities.Product
+import com.example.levelupmobile.ui.cart.CartViewModel
+import com.example.levelupmobile.ui.theme.Black
+import com.example.levelupmobile.ui.theme.DarkGray
+import com.example.levelupmobile.ui.theme.ElectricBlue
+import com.example.levelupmobile.ui.theme.ErrorRed
+import com.example.levelupmobile.ui.theme.LightGray
+import com.example.levelupmobile.ui.theme.NeonGreen
+import com.example.levelupmobile.ui.theme.SuccessGreen
+import com.example.levelupmobile.ui.theme.White
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

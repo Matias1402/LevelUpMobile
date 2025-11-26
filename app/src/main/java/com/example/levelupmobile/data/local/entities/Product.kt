@@ -1,4 +1,4 @@
-package cl.duoc.levelupmobile.data.local.entities
+package com.example.levelupmobile.data.local.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

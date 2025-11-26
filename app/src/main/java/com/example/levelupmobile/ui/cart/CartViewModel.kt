@@ -1,11 +1,11 @@
-package cl.duoc.levelupmobile.ui.cart
+package com.example.levelupmobile.ui.cart
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import cl.duoc.levelupmobile.data.local.datastore.PreferencesManager
-import cl.duoc.levelupmobile.data.local.entities.CartItem
-import cl.duoc.levelupmobile.data.remote.RetrofitClient
+import com.example.levelupmobile.data.local.datastore.PreferencesManager
+import com.example.levelupmobile.data.local.entities.CartItem
+import com.example.levelupmobile.data.remote.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -23,15 +23,16 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
         items.sumOf { it.productPrice * it.quantity }
     }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
+    // Nota: Por ahora simulamos el descuento.
     val discount: StateFlow<Int> = subtotal.map { total ->
-        // Aquí podrías agregar lógica para verificar si es alumno Duoc
-        0
+        0 // Lógica de descuento pendiente o validación de alumno Duoc
     }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     val total: StateFlow<Int> = combine(subtotal, discount) { sub, disc ->
         sub - disc
     }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
+    // Estado del usuario (opcional, inicializado en null)
     val currentUser = flow { emit(null) }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     // Al iniciar el ViewModel, cargamos los datos de la nube
@@ -43,7 +44,8 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val userId = preferencesManager.getUserId()
-                if (userId != -1) {
+                // Verificamos que el ID sea válido
+                if (userId != -1 && userId != 0) {
                     val response = RetrofitClient.apiService.getCart(userId)
                     if (response.isSuccessful) {
                         // Actualizamos la lista con lo que llega de AWS
@@ -56,34 +58,37 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // --- CORRECCIÓN PRINCIPAL: Ahora acepta 'quantity' ---
+    // --- FUNCIÓN PRINCIPAL DE AGREGAR ---
     fun addToCart(productCode: String, name: String, price: Int, quantity: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             val userId = preferencesManager.getUserId()
-            if (userId != -1) {
+
+            // Validamos ID de usuario antes de enviar
+            if (userId != -1 && userId != 0) {
                 val newItem = CartItem(
                     productCode = productCode,
                     productName = name,
                     productPrice = price,
-                    quantity = quantity, // Usamos la cantidad seleccionada
-                    userId = userId.toLong() // Aseguramos que sea Long para el backend
+                    quantity = quantity, // Usamos la cantidad que viene de la pantalla
+                    userId = userId // ¡CORREGIDO! Se envía como Int (sin .toLong())
                 )
-                // Enviamos al Backend
-                val response = RetrofitClient.apiService.addToCart(newItem)
-                if (response.isSuccessful) {
-                    loadCart() // Recargamos la lista para ver el cambio
+
+                try {
+                    // Enviamos al Backend
+                    val response = RetrofitClient.apiService.addToCart(newItem)
+                    if (response.isSuccessful) {
+                        loadCart() // Recargamos la lista para ver el cambio reflejado
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
     }
 
-    // --- AGREGADO: Funciones necesarias para CartScreen ---
-
+    // Actualizar cantidad (reutiliza addToCart ya que el backend sobreescribe/actualiza)
     fun updateQuantity(cartItem: CartItem, newQuantity: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            // Reutilizamos addToCart porque en tu backend simple, guardar
-            // un item existente suele actualizarlo (dependiendo de la lógica JPA)
-            // Si quieres borrar al llegar a 0:
             if (newQuantity <= 0) {
                 removeItem(cartItem)
             } else {
@@ -92,20 +97,22 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Eliminar item (Por ahora recarga el carrito, idealmente se implementaría delete en backend)
     fun removeItem(cartItem: CartItem) {
-        // NOTA: Como tu backend actual no tiene endpoint para borrar UN solo item,
-        // por ahora solo recargamos el carrito.
-        // Si quisieras borrar uno específico, necesitarías agregar @DELETE("api/cart/item/{id}") en Spring.
-        // Para que la app no falle, dejaremos esta función recargando datos.
         loadCart()
     }
 
+    // Vaciar carrito completo
     fun clearCart() {
         viewModelScope.launch(Dispatchers.IO) {
             val userId = preferencesManager.getUserId()
-            if (userId != -1) {
-                RetrofitClient.apiService.clearCart(userId)
-                loadCart() // Limpiamos la lista visualmente
+            if (userId != -1 && userId != 0) {
+                try {
+                    RetrofitClient.apiService.clearCart(userId)
+                    loadCart() // Limpiamos la lista visualmente
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }

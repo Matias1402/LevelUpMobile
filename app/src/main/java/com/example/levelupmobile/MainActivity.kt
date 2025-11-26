@@ -9,10 +9,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import cl.duoc.levelupmobile.data.local.datastore.PreferencesManager
-import cl.duoc.levelupmobile.ui.navigation.AppNavigation
-import cl.duoc.levelupmobile.ui.navigation.Screen
-import cl.duoc.levelupmobile.ui.theme.LevelUpGamerTheme
+import com.example.levelupmobile.data.local.datastore.PreferencesManager
+import com.example.levelupmobile.ui.navigation.AppNavigation
+import com.example.levelupmobile.ui.navigation.Screen
+import com.example.levelupmobile.ui.theme.LevelUpGamerTheme
 // import kotlinx.coroutines.flow.first  <-- YA NO NECESITAS ESTO
 
 class MainActivity : ComponentActivity() {

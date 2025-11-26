@@ -1,7 +1,7 @@
-package cl.duoc.levelupmobile.data.repository
+package com.example.levelupmobile.data.local.repository
 
-import cl.duoc.levelupmobile.data.local.database.dao.UserDao
-import cl.duoc.levelupmobile.data.local.entities.User
+import com.example.levelupmobile.data.local.database.dao.UserDao
+import com.example.levelupmobile.data.local.entities.User
 import kotlinx.coroutines.flow.Flow
 
 class UserRepository(private val userDao: UserDao) {

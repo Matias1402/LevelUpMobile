@@ -1,9 +1,9 @@
-package cl.duoc.levelupmobile.data.remote
+package com.example.levelupmobile.data.remote
 
-// Lo que enviamos al hacer Login
+import com.google.gson.annotations.SerializedName
+
 data class LoginRequest(val email: String, val password: String)
 
-// Lo que enviamos al registrarnos
 data class RegisterRequest(
     val name: String,
     val email: String,
@@ -11,10 +11,12 @@ data class RegisterRequest(
     val age: Int
 )
 
-// Lo que el Backend nos responde (incluye el Token)
 data class AuthResponse(
     val token: String,
+
+    @SerializedName("userId") // Esta etiqueta es la que hace la magia
     val userId: Int,
+
     val name: String,
     val email: String
 )

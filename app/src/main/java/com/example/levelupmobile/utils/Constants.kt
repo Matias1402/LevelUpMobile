@@ -1,4 +1,4 @@
-package cl.duoc.levelupmobile.utils
+package com.example.levelupmobile.utils
 
 object Constants {
     const val DUOC_DISCOUNT = 0.20 // 20% descuento
