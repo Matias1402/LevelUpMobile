@@ -1,9 +1,10 @@
 plugins {
-	kotlin("jvm") version "2.2.21"
-	kotlin("plugin.spring") version "2.2.21"
-	id("org.springframework.boot") version "4.0.0"
-	id("io.spring.dependency-management") version "1.1.7"
-	kotlin("plugin.jpa") version "2.2.21"
+    kotlin("jvm") version "1.9.25" // O la versión de Kotlin que tenías, pero compatible con Boot 3
+    kotlin("plugin.spring") version "1.9.25"
+    // CAMBIO CLAVE: Usamos la versión 3.3.5 (Estable y funciona con todo)
+    id("org.springframework.boot") version "3.3.5"
+    id("io.spring.dependency-management") version "1.1.6"
+    kotlin("plugin.jpa") version "1.9.25"
 }
 
 group = "levelupmobile"
