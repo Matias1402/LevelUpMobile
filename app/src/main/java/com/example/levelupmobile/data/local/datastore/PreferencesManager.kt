@@ -1,40 +1,47 @@
 package cl.duoc.levelupmobile.data.local.datastore
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.*
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import android.content.SharedPreferences
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
+class PreferencesManager(context: Context) {
 
-class PreferencesManager(private val context: Context) {
+    private val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("LevelUpPrefs", Context.MODE_PRIVATE)
 
     companion object {
-        val USER_ID_KEY = intPreferencesKey("user_id")
-        val IS_LOGGED_IN_KEY = booleanPreferencesKey("is_logged_in")
-        val USER_EMAIL_KEY = stringPreferencesKey("user_email")
+        private const val KEY_USER_ID = "user_id"
+        private const val KEY_AUTH_TOKEN = "auth_token" // Clave para el Token
     }
 
-    val userIdFlow: Flow<Int?> = context.dataStore.data.map { preferences ->
-        preferences[USER_ID_KEY]
+    // Guardar ID del usuario
+    fun saveUserId(userId: Int) {
+        sharedPreferences.edit().putInt(KEY_USER_ID, userId).apply()
     }
 
-    val isLoggedInFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[IS_LOGGED_IN_KEY] ?: false
+    // Sobrecarga por si el ID viene como Long desde el backend
+    fun saveUserId(userId: Long) {
+        sharedPreferences.edit().putInt(KEY_USER_ID, userId.toInt()).apply()
     }
 
-    suspend fun saveUserId(userId: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[USER_ID_KEY] = userId
-            preferences[IS_LOGGED_IN_KEY] = true
-        }
+    // Obtener ID del usuario
+    fun getUserId(): Int {
+        return sharedPreferences.getInt(KEY_USER_ID, -1)
     }
 
-    suspend fun logout() {
-        context.dataStore.edit { preferences ->
-            preferences.clear()
-        }
+    // --- ESTO ES LO QUE TE FALTABA ---
+
+    // Guardar el Token JWT
+    fun saveToken(token: String) {
+        sharedPreferences.edit().putString(KEY_AUTH_TOKEN, token).apply()
+    }
+
+    // Obtener el Token (lo usaremos para pedir productos)
+    fun getToken(): String? {
+        return sharedPreferences.getString(KEY_AUTH_TOKEN, null)
+    }
+
+    // Borrar todo (Cerrar sesión)
+    fun clearData() {
+        sharedPreferences.edit().clear().apply()
     }
 }

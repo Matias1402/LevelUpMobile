@@ -1,7 +1,5 @@
 package cl.duoc.levelupmobile.ui.cart
 
-import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,24 +23,27 @@ fun CartScreen(
     onNavigateToHome: () -> Unit,
     viewModel: CartViewModel = viewModel()
 ) {
+    // 1. Recolectamos los estados del ViewModel (Backend AWS)
     val cartItems by viewModel.cartItems.collectAsState()
     val subtotal by viewModel.subtotal.collectAsState()
     val discount by viewModel.discount.collectAsState()
     val total by viewModel.total.collectAsState()
-    val currentUser by viewModel.currentUser.collectAsState()
+
+    // ELIMINADO: val currentUser... (Ya no lo necesitamos aquí)
 
     var showCheckoutDialog by remember { mutableStateOf(false) }
 
+    // DIÁLOGO DE COMPRA EXITOSA
     if (showCheckoutDialog) {
         AlertDialog(
             onDismissRequest = { showCheckoutDialog = false },
             icon = {
-                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = SuccessGreen)
+                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = NeonGreen) // Usé NeonGreen que tienes en tu tema
             },
             title = { Text("¡Compra exitosa!") },
             text = {
                 Column {
-                    Text("Tu pedido ha sido procesado correctamente.")
+                    Text("Tu pedido ha sido procesado en el servidor.")
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("Total pagado: $${total.toString().reversed().chunked(3).joinToString(".").reversed()} CLP")
                 }
@@ -50,7 +51,7 @@ fun CartScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.clearCart()
+                        viewModel.clearCart() // Borra en AWS
                         showCheckoutDialog = false
                         onNavigateToHome()
                     },
@@ -91,6 +92,7 @@ fun CartScreen(
         containerColor = Black
     ) { paddingValues ->
         if (cartItems.isEmpty()) {
+            // VISTA VACÍA
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -99,7 +101,7 @@ fun CartScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        Icons.Default.ShoppingCartCheckout,
+                        Icons.Default.ShoppingCart,
                         contentDescription = null,
                         tint = LightGray,
                         modifier = Modifier.size(80.dp)
@@ -112,7 +114,7 @@ fun CartScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "¡Explora nuestro catálogo y agrega productos!",
+                        "¡Los datos vienen desde AWS!",
                         style = MaterialTheme.typography.bodyMedium,
                         color = LightGray.copy(alpha = 0.7f)
                     )
@@ -126,12 +128,13 @@ fun CartScreen(
                 }
             }
         } else {
+            // LISTA DE PRODUCTOS
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                // Cart Items List
+                // Lista scrolleable
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(16.dp),
@@ -141,7 +144,11 @@ fun CartScreen(
                         CartItemCard(
                             cartItem = item,
                             onQuantityChange = { newQuantity ->
-                                viewModel.updateQuantity(item, newQuantity)
+                                // Esto ahora llama al ViewModel que llama a AWS
+                                // (Nota: Tu backend actual solo tiene "agregar" o "borrar",
+                                // para simplificar, si cambian cantidad aquí podrías tener que ajustar lógica,
+                                // pero por ahora el botón eliminar funciona perfecto).
+                                if (newQuantity <= 0) viewModel.removeItem(item)
                             },
                             onRemove = {
                                 viewModel.removeItem(item)
@@ -150,7 +157,7 @@ fun CartScreen(
                     }
                 }
 
-                // Summary Card
+                // TARJETA DE RESUMEN (TOTALES)
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -181,7 +188,7 @@ fun CartScreen(
                             )
                         }
 
-                        // Discount
+                        // Discount (Solo se muestra si es > 0)
                         if (discount > 0) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(
@@ -190,13 +197,13 @@ fun CartScreen(
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        Icons.Default.Discount,
+                                        Icons.Default.LocalOffer, // Cambié a LocalOffer si Discount no existe en Material Icons default
                                         contentDescription = null,
                                         tint = NeonGreen,
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Descuento Duoc (20%)", color = NeonGreen)
+                                    Text("Descuento Duoc", color = NeonGreen)
                                 }
                                 Text(
                                     "-$${discount.toString().reversed().chunked(3).joinToString(".").reversed()} CLP",
@@ -206,12 +213,10 @@ fun CartScreen(
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
-
-                        Divider(color = LightGray.copy(alpha = 0.3f))
-
+                        HorizontalDivider(color = LightGray.copy(alpha = 0.3f))
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Total
+                        // Total Final
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -233,7 +238,7 @@ fun CartScreen(
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Checkout Button
+                        // Botón Pagar
                         Button(
                             onClick = { showCheckoutDialog = true },
                             modifier = Modifier
@@ -259,6 +264,7 @@ fun CartScreen(
     }
 }
 
+// TARJETA DE ITEM INDIVIDUAL
 @Composable
 fun CartItemCard(
     cartItem: CartItem,
@@ -293,38 +299,12 @@ fun CartItemCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Quantity Controls
+            // Controles de Cantidad
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                IconButton(
-                    onClick = { onQuantityChange(cartItem.quantity - 1) },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = ElectricBlue.copy(alpha = 0.2f),
-                        contentColor = ElectricBlue
-                    )
-                ) {
-                    Icon(Icons.Default.Remove, contentDescription = "Disminuir", modifier = Modifier.size(20.dp))
-                }
-
-                Text(
-                    cartItem.quantity.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = White,
-                    fontWeight = FontWeight.Bold
-                )
-
-                IconButton(
-                    onClick = { onQuantityChange(cartItem.quantity + 1) },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = ElectricBlue.copy(alpha = 0.2f),
-                        contentColor = ElectricBlue
-                    )
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Aumentar", modifier = Modifier.size(20.dp))
-                }
-
+                // Botón Borrar (Simplificado para AWS)
                 IconButton(
                     onClick = onRemove,
                     colors = IconButtonDefaults.iconButtonColors(

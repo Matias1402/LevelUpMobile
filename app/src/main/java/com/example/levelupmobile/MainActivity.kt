@@ -13,7 +13,7 @@ import cl.duoc.levelupmobile.data.local.datastore.PreferencesManager
 import cl.duoc.levelupmobile.ui.navigation.AppNavigation
 import cl.duoc.levelupmobile.ui.navigation.Screen
 import cl.duoc.levelupmobile.ui.theme.LevelUpGamerTheme
-import kotlinx.coroutines.flow.first
+// import kotlinx.coroutines.flow.first  <-- YA NO NECESITAS ESTO
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +29,12 @@ class MainActivity : ComponentActivity() {
                     var startDestination by remember { mutableStateOf<String?>(null) }
 
                     LaunchedEffect(Unit) {
-                        val isLoggedIn = preferencesManager.isLoggedInFlow.first()
+                        // CAMBIO AQUÍ: Verificamos si hay token directamente
+                        val token = preferencesManager.getToken()
+
+                        // Si el token no es nulo ni vacío, el usuario está logueado
+                        val isLoggedIn = !token.isNullOrEmpty()
+
                         startDestination = if (isLoggedIn) {
                             Screen.Home.route
                         } else {

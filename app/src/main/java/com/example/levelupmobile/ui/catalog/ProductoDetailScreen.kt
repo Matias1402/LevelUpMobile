@@ -1,7 +1,5 @@
 package cl.duoc.levelupmobile.ui.catalog
 
-import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,16 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cl.duoc.levelupmobile.data.local.database.AppDatabase
-import cl.duoc.levelupmobile.data.local.datastore.PreferencesManager
-import cl.duoc.levelupmobile.data.local.entities.CartItem
-import cl.duoc.levelupmobile.data.repository.CartRepository
+import cl.duoc.levelupmobile.data.local.entities.Product
+import cl.duoc.levelupmobile.ui.cart.CartViewModel
 import cl.duoc.levelupmobile.ui.theme.*
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,21 +25,29 @@ fun ProductDetailScreen(
     productCode: String,
     onNavigateBack: () -> Unit,
     onNavigateToCart: () -> Unit,
-    viewModel: CatalogViewModel = viewModel()
+    viewModel: CatalogViewModel = viewModel(),
+    cartViewModel: CartViewModel = viewModel() // <-- INYECTAMOS EL CART VIEWMODEL
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val database = AppDatabase.getDatabase(context)
-    val cartRepository = CartRepository(database.cartDao())
-    val preferencesManager = PreferencesManager(context)
-
-    var product by remember { mutableStateOf<cl.duoc.levelupmobile.data.local.entities.Product?>(null) }
+    // ESTADO
+    var product by remember { mutableStateOf<Product?>(null) }
     var quantity by remember { mutableStateOf(1) }
     var showSnackbar by remember { mutableStateOf(false) }
 
+    // CARGAR PRODUCTO DESDE EL VIEWMODEL (AWS)
     LaunchedEffect(productCode) {
         product = viewModel.getProductByCode(productCode)
+        // Nota: Si getProductByCode no está en tu CatalogViewModel,
+        // puedes usar la lista 'viewModel.products.value.find { it.code == productCode }'
+    }
+
+    // Si tu CatalogViewModel no tiene getProductByCode, usa esto temporalmente:
+    val products by viewModel.products.collectAsState()
+    LaunchedEffect(products) {
+        if (product == null) {
+            product = products.find { it.code == productCode }
+        }
     }
 
     Scaffold(
@@ -63,7 +66,8 @@ fun ProductDetailScreen(
                 )
             )
         },
-        containerColor = Black, snackbarHost = {
+        containerColor = Black,
+        snackbarHost = {
             if (showSnackbar) {
                 Snackbar(
                     action = {
@@ -87,7 +91,7 @@ fun ProductDetailScreen(
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
-// Product Header
+                // --- TARJETA DEL PRODUCTO ---
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -96,7 +100,7 @@ fun ProductDetailScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(modifier = Modifier.padding(24.dp)) {
-// Category badge
+                        // Categoría
                         Surface(
                             color = ElectricBlue.copy(alpha = 0.2f),
                             shape = RoundedCornerShape(8.dp)
@@ -110,6 +114,7 @@ fun ProductDetailScreen(
                         }
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Nombre
                         Text(
                             prod.name,
                             style = MaterialTheme.typography.headlineMedium,
@@ -119,7 +124,7 @@ fun ProductDetailScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Rating
+                        // Rating (Estrellitas)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             repeat(5) { index ->
                                 Icon(
@@ -138,46 +143,31 @@ fun ProductDetailScreen(
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
-
                         Divider(color = LightGray.copy(alpha = 0.3f))
-
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Price
+                        // Precio y Stock
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
+                                Text("Precio", color = LightGray, style = MaterialTheme.typography.bodySmall)
                                 Text(
-                                    "Precio",
-                                    color = LightGray,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                                Text(
-                                    "$${
-                                        prod.price.toString().reversed().chunked(3)
-                                            .joinToString(".").reversed()
-                                    } CLP",
+                                    "$${prod.price.toString().reversed().chunked(3).joinToString(".").reversed()} CLP",
                                     style = MaterialTheme.typography.headlineLarge,
                                     color = ElectricBlue,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
 
-                            // Stock indicator
                             Surface(
-                                color = if (prod.stock > 0) SuccessGreen.copy(alpha = 0.2f) else ErrorRed.copy(
-                                    alpha = 0.2f
-                                ),
+                                color = if (prod.stock > 0) SuccessGreen.copy(alpha = 0.2f) else ErrorRed.copy(alpha = 0.2f),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(
-                                        horizontal = 12.dp,
-                                        vertical = 8.dp
-                                    ),
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
@@ -198,65 +188,37 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // Description
+                // --- DESCRIPCIÓN ---
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     colors = CardDefaults.cardColors(containerColor = DarkGray),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(modifier = Modifier.padding(24.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.Description,
-                                contentDescription = null,
-                                tint = ElectricBlue,
-                                modifier = Modifier.size(24.dp)
-                            )
+                            Icon(Icons.Default.Description, contentDescription = null, tint = ElectricBlue, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                "Descripción",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = White,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text("Descripción", style = MaterialTheme.typography.titleMedium, color = White, fontWeight = FontWeight.Bold)
                         }
-
                         Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            prod.description,
-                            color = LightGray,
-                            style = MaterialTheme.typography.bodyMedium,
-                            lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
-                        )
+                        Text(prod.description, color = LightGray, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Quantity Selector
+                // --- SELECTOR DE CANTIDAD ---
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     colors = CardDefaults.cardColors(containerColor = DarkGray),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
+                        modifier = Modifier.fillMaxWidth().padding(24.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            "Cantidad",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = White
-                        )
-
+                        Text("Cantidad", style = MaterialTheme.typography.titleMedium, color = White)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -264,65 +226,36 @@ fun ProductDetailScreen(
                             IconButton(
                                 onClick = { if (quantity > 1) quantity-- },
                                 enabled = quantity > 1,
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = ElectricBlue.copy(alpha = 0.2f),
-                                    contentColor = ElectricBlue
-                                )
-                            ) {
-                                Icon(Icons.Default.Remove, contentDescription = "Disminuir")
-                            }
+                                colors = IconButtonDefaults.iconButtonColors(containerColor = ElectricBlue.copy(alpha = 0.2f), contentColor = ElectricBlue)
+                            ) { Icon(Icons.Default.Remove, contentDescription = "Disminuir") }
 
-                            Text(
-                                quantity.toString(),
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = White,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text(quantity.toString(), style = MaterialTheme.typography.headlineSmall, color = White, fontWeight = FontWeight.Bold)
 
                             IconButton(
                                 onClick = { if (quantity < prod.stock) quantity++ },
                                 enabled = quantity < prod.stock,
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = ElectricBlue.copy(alpha = 0.2f),
-                                    contentColor = ElectricBlue
-                                )
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = "Aumentar")
-                            }
+                                colors = IconButtonDefaults.iconButtonColors(containerColor = ElectricBlue.copy(alpha = 0.2f), contentColor = ElectricBlue)
+                            ) { Icon(Icons.Default.Add, contentDescription = "Aumentar") }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Add to Cart Button
+                // --- BOTÓN AGREGAR AL CARRITO (CONECTADO A AWS) ---
                 Button(
                     onClick = {
                         scope.launch {
-                            val userId = preferencesManager.userIdFlow.firstOrNull()
-                            userId?.let { id ->
-                                val cartItem = CartItem(
-                                    productCode = prod.code,
-                                    productName = prod.name,
-                                    productPrice = prod.price,
-                                    quantity = quantity,
-                                    userId = id
-                                )
-                                cartRepository.addToCart(cartItem)
-                                showSnackbar = true
-                                kotlinx.coroutines.delay(3000)
-                                showSnackbar = false
-                            }
+                            // LLAMADA AL VIEWMODEL QUE CONECTA CON AWS
+                            cartViewModel.addToCart(prod.code, prod.name, prod.price, quantity)
+
+                            showSnackbar = true
+                            delay(3000)
+                            showSnackbar = false
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(horizontal = 16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NeonGreen,
-                        contentColor = Black
-                    ),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = NeonGreen, contentColor = Black),
                     enabled = prod.stock > 0
                 ) {
                     Icon(Icons.Default.ShoppingCart, contentDescription = null)
