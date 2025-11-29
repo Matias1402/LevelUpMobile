@@ -146,7 +146,7 @@ fun HomeScreen(
                             Icon(
                                 Icons.Default.ArrowForward,
                                 contentDescription = null,
-                                tint = ElectricBlue,
+                                tint = NeonGreen,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -198,7 +198,7 @@ fun HomeScreen(
                         Icon(
                             Icons.Default.Map, // Ícono de mapa
                             contentDescription = null,
-                            tint = ElectricBlue,
+                            tint = NeonGreen,
                             modifier = Modifier.size(32.dp)
                         )
                         Spacer(modifier = Modifier.width(16.dp))
